@@ -162,7 +162,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   }
 
   // 6. CHECK IF PROFILE IS COMPLETE AND RENDER CONDITIONALLY
-  const isProfileComplete = user.bio && user.institute;
+  const isProfileComplete = user.institute;
 
   if (!isProfileComplete) {
     // Render the "New User" welcome screen if bio or institute is missing

@@ -156,42 +156,56 @@ export const UserProfile = ({ user }: UserProfileProps) => {
               </div>
             </div>
           )}
+{/* Coding Platforms */}
+{user.platforms && (
+  <div>
+    <h3 className="text-sm font-semibold mb-3">Coding Platforms</h3>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {Object.entries(user.platforms)
+        .filter(([platform]) =>
+          ['codeforces', 'leetcode', 'codechef', 'geeksforgeeks'].includes(platform)
+        )
+        .map(([platform, username]) => {
+          if (!username) return null;
 
-          {/* Coding Platforms */}
-          {user.platforms && (
-            <div>
-              <h3 className="text-sm font-semibold mb-3">Coding Platforms</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {Object.entries(user.platforms)
-                  .filter(([platform]) => platform !== 'github' && platform !== 'linkedin')
-                  .map(([platform, username]) => {
-                  if (!username) return null;
-                  const Icon = platformIcons[platform as keyof typeof platformIcons] || ExternalLink;
-                  const colorClass = platformColors[platform as keyof typeof platformColors];
-                  
-                  return (
-                    <Button
-                      key={platform}
-                      variant="outline"
-                      size="sm"
-                      className="justify-start gap-2 h-auto p-3"
-                      asChild
-                    >
-                      <a href={`#${platform}-${username}`} target="_blank" rel="noopener noreferrer">
-                        <div className={`p-1 rounded-md ${colorClass}`}>
-                          <Icon className="h-3 w-3 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs font-medium capitalize">{platform}</p>
-                          <p className="text-xs text-muted-foreground truncate">@{username}</p>
-                        </div>
-                      </a>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          const Icon = platformIcons[platform as keyof typeof platformIcons] || ExternalLink;
+          const colorClass = platformColors[platform as keyof typeof platformColors];
+
+          // Define platform profile URL formats
+          const platformUrls: Record<string, string> = {
+            codeforces: `https://codeforces.com/profile/${username}`,
+            leetcode: `https://leetcode.com/${username}`,
+            codechef: `https://www.codechef.com/users/${username}`,
+            geeksforgeeks: `https://auth.geeksforgeeks.org/user/${username}/`,
+          };
+
+          const profileUrl = platformUrls[platform] || '#';
+
+          return (
+            <Button
+              key={platform}
+              variant="outline"
+              size="sm"
+              className="justify-start gap-2 h-auto p-3"
+              asChild
+            >
+              <a href={profileUrl} target="_blank" rel="noopener noreferrer">
+                <div className={`p-1 rounded-md ${colorClass}`}>
+                  <Icon className="h-3 w-3 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-medium capitalize">{platform}</p>
+                  <p className="text-xs text-muted-foreground truncate">@{username}</p>
+                </div>
+              </a>
+            </Button>
+          );
+        })}
+    </div>
+  </div>
+)}
+
+          
         </CardContent>
       </Card>
 

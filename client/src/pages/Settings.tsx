@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -6,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+} from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Link as LinkIcon, Save, X, Plus } from "lucide-react";
+import {
+  Settings as SettingsIcon, User, Link as LinkIcon, Save, X, Plus,
+} from "lucide-react";
 
+// Schema
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
@@ -38,35 +43,90 @@ interface SettingsProps {
 
 export const Settings = ({ onNavigate }: SettingsProps) => {
   const [newSkill, setNewSkill] = useState("");
-  const [skills, setSkills] = useState([
-    "Dynamic Programming",
-    "Graph Algorithms", 
-    "Data Structures",
-    "Binary Search",
-    "C++",
-    "Python"
-  ]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      username: "codeMaster",
-      email: "codemaster@example.com",
-      institute: "MIT Computer Science",
-      bio: "Passionate competitive programmer with 3+ years of experience. Love solving algorithmic challenges and sharing knowledge with the community.",
-      location: "Boston, MA",
-      skills: skills,
+      username: "",
+      email: "",
+      institute: "",
+      bio: "",
+      location: "",
+      skills: [],
       platforms: {
-        codeforces: "codeMaster2024",
-        leetcode: "codeMaster_dev",
-        codechef: "codemaster99",
-        geeksforgeeks: "codeMaster",
-        github: "codeMaster2024",
-        linkedin: "code-master"
+        codeforces: "",
+        leetcode: "",
+        codechef: "",
+        geeksforgeeks: "",
+        github: "",
+        linkedin: "",
       },
     },
   });
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          toast({
+            title: "Authentication error",
+            description: "You are not logged in. Please log in to continue.",
+            variant: "destructive",
+          });
+          onNavigate("login");
+          return;
+        }
+
+        const response = await fetch("http://localhost:8000/api/users/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Could not fetch user profile.");
+        }
+
+        const userData = await response.json();
+
+        form.reset({
+          username: userData.username || "",
+          email: userData.email || "",
+          institute: userData.institute ?? "",
+          bio: userData.bio ?? "",
+          location: userData.location ?? "",
+          skills: Array.isArray(userData.skills) ? userData.skills : [],
+          platforms: {
+            codeforces: userData.platforms?.codeforces ?? "",
+            leetcode: userData.platforms?.leetcode ?? "",
+            codechef: userData.platforms?.codechef ?? "",
+            geeksforgeeks: userData.platforms?.geeksforgeeks ?? "",
+            github: userData.platforms?.github ?? "",
+            linkedin: userData.platforms?.linkedin ?? "",
+          },
+        });
+
+        setSkills(Array.isArray(userData.skills) ? userData.skills : []);
+      } catch (err: any) {
+        toast({
+          title: "Error",
+          description: err.message || "Failed to load user data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
@@ -85,17 +145,48 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast({
+          title: "Authentication error",
+          description: "You are not logged in. Please log in to continue.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const updateData = {
+        institute: data.institute,
+        bio: data.bio,
+        location: data.location,
+        skills: data.skills,
+        platforms: data.platforms,
+      };
+
+      const response = await fetch("http://localhost:8000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+
       toast({
         title: "Profile updated!",
         description: "Your profile has been updated successfully.",
       });
+
+      onNavigate("dashboard");
     } catch (error) {
       toast({
         title: "Update failed",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     }
@@ -104,18 +195,14 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
             <span className="gradient-text">Settings</span>
           </h1>
-          <p className="text-muted-foreground">
-            Manage your profile and account preferences
-          </p>
+          <p className="text-muted-foreground">Manage your profile and account preferences</p>
         </div>
 
         <div className="space-y-6">
-          {/* Profile Picture Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -126,29 +213,22 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
             <CardContent>
               <div className="flex items-center gap-6">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src="/lovable-uploads/d4807de6-0bc6-4782-b5f3-24161edbbefd.png" alt="Profile" />
-                  <AvatarFallback className="bg-gradient-primary text-white text-xl">
-                    CM
-                  </AvatarFallback>
+                  <AvatarImage src="/default-avatar.png" alt="Profile" />
+                  <AvatarFallback className="bg-gradient-primary text-white text-xl">CM</AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
                     Upload a new profile picture or update your existing one
                   </p>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Upload New
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      Remove
-                    </Button>
+                    <Button variant="outline" size="sm">Upload New</Button>
+                    <Button variant="ghost" size="sm">Remove</Button>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Personal Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -167,13 +247,12 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input className="input-focus" {...field} />
+                            <Input className="input-focus" {...field} disabled />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="email"
@@ -181,13 +260,14 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" className="input-focus" {...field} />
+                            <Input type="email" className="input-focus" {...field} disabled />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,6 +13,56 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<"login" | "signup" | "dashboard">("login");
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [currentUser, setCurrentUser] = useState<{ username: string; avatar?: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing token and validate it on component mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        // Validate token by fetching user profile
+        const response = await fetch("http://localhost:8000/api/users/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          // Token is invalid, clear it
+          localStorage.removeItem("token");
+          throw new Error("Invalid token");
+        }
+
+        const userData = await response.json();
+        
+        // Set user data and view state
+        setCurrentUser({ 
+          username: userData.username,
+          avatar: userData.avatar
+        });
+        setCurrentView("dashboard");
+        
+        // Restore last visited page if available
+        const lastPage = localStorage.getItem("lastPage");
+        if (lastPage) {
+          setCurrentPage(lastPage);
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleLogin = (username: string) => {
     setCurrentUser({ username });
@@ -34,13 +84,28 @@ const Index = () => {
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
+    // Save current page to localStorage for persistence
+    localStorage.setItem("lastPage", page);
   };
 
   const handleLogout = () => {
+    // Clear auth data
+    localStorage.removeItem("token");
+    localStorage.removeItem("lastPage");
+    
     setCurrentUser(null);
     setCurrentView("login");
     setCurrentPage("dashboard");
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Auth views
   if (currentView === "login") {
