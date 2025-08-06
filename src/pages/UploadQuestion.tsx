@@ -9,16 +9,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Plus } from "lucide-react";
+import { Upload, X, Plus, Code2 } from "lucide-react";
+import Editor from "@monaco-editor/react";
 
 const uploadSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   tags: z.array(z.string()).min(1, "At least one tag is required"),
+  language: z.string().min(1, "Please select a programming language"),
   solution: z.string().min(10, "Solution must be at least 10 characters"),
   notes: z.string().optional(),
   isPublic: z.boolean().default(true),
 });
+
+const LANGUAGES = [
+  { value: "cpp", label: "C++" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "c", label: "C" },
+];
 
 type UploadFormData = z.infer<typeof uploadSchema>;
 
@@ -36,6 +47,7 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
     defaultValues: {
       title: "",
       tags: [],
+      language: "",
       solution: "",
       notes: "",
       isPublic: true,
@@ -181,22 +193,66 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                   )}
                 />
 
+                {/* Language Selection */}
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Programming Language</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="input-focus">
+                            <SelectValue placeholder="Select programming language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LANGUAGES.map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                {lang.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormDescription>
+                        Choose the language your solution is written in
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Solution */}
                 <FormField
                   control={form.control}
                   name="solution"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Solution Code</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <Code2 className="h-4 w-4" />
+                        Solution Code
+                      </FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Paste your solution code here..."
-                          className="min-h-[300px] font-mono text-sm input-focus"
-                          {...field} 
-                        />
+                        <div className="border border-border rounded-lg overflow-hidden">
+                          <Editor
+                            value={field.value}
+                            onChange={(value) => field.onChange(value || "")}
+                            language={form.watch("language") || "javascript"}
+                            theme="vs-dark"
+                            height="400px"
+                            options={{
+                              minimap: { enabled: false },
+                              fontSize: 14,
+                              lineNumbers: "on",
+                              automaticLayout: true,
+                              scrollBeyondLastLine: false,
+                              wordWrap: "on",
+                            }}
+                          />
+                        </div>
                       </FormControl>
                       <FormDescription>
-                        Share your complete solution with proper formatting
+                        Write your complete solution with proper formatting
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

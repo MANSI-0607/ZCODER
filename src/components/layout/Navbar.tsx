@@ -34,6 +34,7 @@ export const Navbar = ({ user, currentPage, onNavigate, onLogout }: NavbarProps)
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Code },
+    { id: "code-live", label: "Code Live", icon: Code },
     { id: "upload", label: "Upload Question", icon: Upload },
     { id: "my-questions", label: "My Questions", icon: FileText },
     { id: "explore", label: "Explore", icon: Compass },
@@ -56,7 +57,7 @@ export const Navbar = ({ user, currentPage, onNavigate, onLogout }: NavbarProps)
             <div className="bg-gradient-primary p-2 rounded-lg">
               <Code className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text">CodeHub</span>
+            <span className="text-xl font-bold gradient-text">ZCODER</span>
           </div>
 
           {/* Desktop Navigation */}

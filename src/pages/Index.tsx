@@ -6,6 +6,7 @@ import { Dashboard } from "./Dashboard";
 import { UploadQuestion } from "./UploadQuestion";
 import { MyQuestions } from "./MyQuestions";
 import { Explore } from "./Explore";
+import { CodeLive } from "./CodeLive";
 import { Settings } from "./Settings";
 
 const Index = () => {
@@ -63,6 +64,8 @@ const Index = () => {
         return <MyQuestions onNavigate={handleNavigate} />;
       case "explore":
         return <Explore onNavigate={handleNavigate} />;
+      case "code-live":
+        return <CodeLive onNavigate={handleNavigate} />;
       case "settings":
         return <Settings onNavigate={handleNavigate} />;
       default:

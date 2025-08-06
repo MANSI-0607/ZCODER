@@ -85,20 +85,22 @@ export const RecentActivity = ({ questions, onViewAll, onViewQuestion }: RecentA
                     {formatTimeAgo(question.createdAt)}
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      {question.views}
+                  {question.isPublic && (
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        {question.views}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {question.likes}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        {question.comments}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
-                      {question.likes}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      {question.comments}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
