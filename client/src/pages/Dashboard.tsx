@@ -23,76 +23,17 @@ interface User {
     github?: string;
     linkedin?: string;
   };
-stats: {
+  stats: {
+    questionsUploaded: 42;
 
-questionsUploaded: 42,
+    solutionsShared: 78;
+    likes: 234;
 
-solutionsShared: 78,
- likes: 234,
-
-followers: 89
-
- }
-
-};
+    followers: 89;
+  };
+}
 
 
-
-const mockQuestions = [
-
-{
-
-id: "1",
-
- title: "Binary Search Tree Validation",
-
- tags: ["Binary Tree", "BST", "Recursion"],
-
- isPublic: true,
-
- createdAt: "2024-01-15T10:30:00Z",
-
- views: 45,
-
- likes: 12,
-
- comments:5
- },
-
- {
-
- id: "2",
-
- title: "Dynamic Programming - Longest Common Subsequence",
- tags: ["Dynamic Programming", "Strings", "LCS"],
- isPublic: true,
- createdAt: "2024-01-14T14:20:00Z",
- views: 67,
- likes: 23,
- comments: 8
-
- },
-
- {
-
- id: "3",
-
-title: "Graph Traversal - DFS Implementation",
-
-tags: ["Graph", "DFS", "Traversal"],
-
-isPublic: false,
-
- createdAt: "2024-01-13T09:15:00Z",
-
- views: 12,
-
- likes: 3,
-comments: 1
-
- }
-
-];
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -101,43 +42,57 @@ interface DashboardProps {
 export const Dashboard = ({ onNavigate }: DashboardProps) => {
   // 2. ADD STATE FOR USER, LOADING, AND ERRORS
   const [user, setUser] = useState<User | null>(null);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+useEffect(() => {
+  const fetchUserAndQuestions = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You are not logged in. Please log in to continue.");
+      setIsLoading(false);
+      return;
+    }
 
-  // 3. FETCH USER DATA WHEN THE COMPONENT MOUNTS
-  useEffect(() => {
-    const fetchUser = async () => {
-      // Retrieve the token saved during login
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("You are not logged in. Please log in to continue.");
-        setIsLoading(false);
-        return;
+    try {
+      // Fetch profile & questions in parallel
+      const [userRes, questionsRes] = await Promise.all([
+        fetch("http://localhost:8000/api/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:8000/api/questions/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (!userRes.ok) {
+        const errData = await userRes.json();
+        throw new Error(errData.message || "Could not fetch user profile.");
+      }
+      if (!questionsRes.ok) {
+        const errData = await questionsRes.json();
+        throw new Error(errData.message || "Could not fetch user questions.");
       }
 
-      try {
-        const response = await fetch("http://localhost:8000/api/users/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const userData = await userRes.json();
+      const questionsData = await questionsRes.json();
+      console.log(questionsData)
+      setUser(userData);
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Could not fetch user profile.");
-        }
+      const recentFive = questionsData.data.slice(0, 5);
 
-        const userData = await response.json();
-        setUser(userData);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    fetchUser();
-  }, []); // The empty dependency array means this runs only once on mount
+
+      setQuestions(recentFive);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchUserAndQuestions();
+}, []);
 
   // 4. HANDLE LOADING STATE
   if (isLoading) {
@@ -152,9 +107,13 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   if (error || !user) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center p-4">
-        <h2 className="text-2xl font-semibold text-destructive mb-4">An Error Occurred</h2>
-        <p className="text-muted-foreground">{error || "Could not load user data."}</p>
-        <Button onClick={() => onNavigate('login')} className="mt-6">
+        <h2 className="text-2xl font-semibold text-destructive mb-4">
+          An Error Occurred
+        </h2>
+        <p className="text-muted-foreground">
+          {error || "Could not load user data."}
+        </p>
+        <Button onClick={() => onNavigate("login")} className="mt-6">
           Go to Login
         </Button>
       </div>
@@ -171,12 +130,18 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Welcome to ZCODER, <span className="gradient-text">{user.username}!</span>
+              Welcome to ZCODER,{" "}
+              <span className="gradient-text">{user.username}!</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mb-8">
-              Let's personalize your experience by completing your profile. It only takes a minute.
+              Let's personalize your experience by completing your profile. It
+              only takes a minute.
             </p>
-            <Button className="btn-primary" size="lg" onClick={() => onNavigate("settings")}>
+            <Button
+              className="btn-primary"
+              size="lg"
+              onClick={() => onNavigate("settings")}
+            >
               Complete Your Profile
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -189,9 +154,9 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
   // --- RENDER THE FULL DASHBOARD IF PROFILE IS COMPLETE ---
 
   // Format the join date from the backend's `createdAt` field
-  const joinedDate = new Date(user.createdAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
+  const joinedDate = new Date(user.createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
   });
 
   // Prepare the props object for the UserProfile component
@@ -220,17 +185,19 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, <span className="gradient-text">{user.username}!</span>
+            Welcome back,{" "}
+            <span className="gradient-text">{user.username}!</span>
           </h1>
           <p className="text-muted-foreground">
-            Continue your coding journey and share your knowledge with the community.
+            Continue your coding journey and share your knowledge with the
+            community.
           </p>
         </div>
         <div className="space-y-8">
           {/* 7. PASS THE REAL, FETCHED USER DATA TO THE UserProfile COMPONENT */}
           <UserProfile user={userProfileProps} />
           <RecentActivity
-            questions={mockQuestions}
+            questions={questions}
             onViewAll={handleViewAllQuestions}
             onViewQuestion={handleViewQuestion}
           />

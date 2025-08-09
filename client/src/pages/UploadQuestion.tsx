@@ -6,16 +6,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Plus, Code2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
 const uploadSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
   tags: z.array(z.string()).min(1, "At least one tag is required"),
   language: z.string().min(1, "Please select a programming language"),
   solution: z.string().min(10, "Solution must be at least 10 characters"),
@@ -46,6 +61,7 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       title: "",
+      description: "",
       tags: [],
       language: "",
       solution: "",
@@ -64,35 +80,60 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
   };
 
   const removeTag = (tagToRemove: string) => {
-    const updatedTags = tags.filter(tag => tag !== tagToRemove);
+    const updatedTags = tags.filter((tag) => tag !== tagToRemove);
     setTags(updatedTags);
     form.setValue("tags", updatedTags);
   };
 
-  const onSubmit = async (data: UploadFormData) => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Question uploaded!",
-        description: "Your question has been shared with the community.",
-      });
-      
-      // Reset form
-      form.reset();
-      setTags([]);
-      
-      // Navigate to my questions
-      onNavigate("my-questions");
-    } catch (error) {
-      toast({
-        title: "Upload failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+const onSubmit = async (data: UploadFormData) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("You must be logged in to upload a question");
     }
-  };
+
+    const payload = {
+      title: data.title,
+      description: data.description || "", 
+      tags: data.tags || [],
+      lang: data.language,
+      solution: data.solution || "",
+      notes: data.notes || "",
+      isPublic: data.isPublic ?? true
+    };
+
+    const resp = await fetch("http://localhost:8000/api/questions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(result.message || "Upload failed");
+    }
+
+    toast({
+      title: "Question uploaded!",
+      description: "Your question has been shared with the community.",
+    });
+
+    form.reset();
+    setTags([]);
+    onNavigate("my-questions");
+
+  } catch (error: any) {
+    toast({
+      title: "Upload failed",
+      description: error.message || "Something went wrong. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -115,7 +156,10 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {/* Title */}
                 <FormField
                   control={form.control}
@@ -124,15 +168,33 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                     <FormItem>
                       <FormLabel>Question Title</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="e.g., Binary Search Tree Validation" 
+                        <Input
+                          placeholder="e.g., Binary Search Tree Validation"
                           className="input-focus"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
                         Give your question a clear, descriptive title
                       </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Problem Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe the problem in detail..."
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -152,11 +214,14 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                               placeholder="Add tags (e.g., Binary Tree, DFS)"
                               value={newTag}
                               onChange={(e) => setNewTag(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                              onKeyDown={(e) =>
+                                e.key === "Enter" &&
+                                (e.preventDefault(), addTag())
+                              }
                               className="input-focus"
                             />
-                            <Button 
-                              type="button" 
+                            <Button
+                              type="button"
                               onClick={addTag}
                               disabled={!newTag.trim()}
                               size="sm"
@@ -164,11 +229,15 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
-                          
+
                           {tags.length > 0 && (
                             <div className="flex flex-wrap gap-2">
                               {tags.map((tag) => (
-                                <Badge key={tag} variant="secondary" className="tag">
+                                <Badge
+                                  key={tag}
+                                  variant="secondary"
+                                  className="tag"
+                                >
                                   {tag}
                                   <Button
                                     type="button"
@@ -193,7 +262,7 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                   )}
                 />
 
-                {/* Language Selection */}
+                {/* Language */}
                 <FormField
                   control={form.control}
                   name="language"
@@ -201,13 +270,19 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                     <FormItem>
                       <FormLabel>Programming Language</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <SelectTrigger className="input-focus">
                             <SelectValue placeholder="Select programming language" />
                           </SelectTrigger>
                           <SelectContent>
                             {LANGUAGES.map((lang) => (
-                              <SelectItem key={lang.value} value={lang.value}>
+                              <SelectItem
+                                key={lang.value}
+                                value={lang.value}
+                              >
                                 {lang.label}
                               </SelectItem>
                             ))}
@@ -236,7 +311,9 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                         <div className="border border-border rounded-lg overflow-hidden">
                           <Editor
                             value={field.value}
-                            onChange={(value) => field.onChange(value || "")}
+                            onChange={(value) =>
+                              field.onChange(value || "")
+                            }
                             language={form.watch("language") || "javascript"}
                             theme="vs-dark"
                             height="400px"
@@ -267,21 +344,18 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                     <FormItem>
                       <FormLabel>Additional Notes (Optional)</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Add any explanations, time/space complexity, or approach details..."
+                        <Textarea
+                          placeholder="Add explanations, complexity, or approach details..."
                           className="min-h-[100px] input-focus"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
-                      <FormDescription>
-                        Provide context, explanations, or approach details
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Public/Private Toggle */}
+                {/* Public Toggle */}
                 <FormField
                   control={form.control}
                   name="isPublic"
@@ -290,7 +364,8 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Make Public</FormLabel>
                         <FormDescription>
-                          Allow other users to view and interact with this question
+                          Allow other users to view and interact with this
+                          question
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -303,17 +378,19 @@ export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
                   )}
                 />
 
-                {/* Submit Button */}
+                {/* Buttons */}
                 <div className="flex gap-3 pt-6">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="btn-primary"
                     disabled={form.formState.isSubmitting}
                   >
-                    {form.formState.isSubmitting ? "Uploading..." : "Upload Question"}
+                    {form.formState.isSubmitting
+                      ? "Uploading..."
+                      : "Upload Question"}
                   </Button>
-                  <Button 
-                    type="button" 
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={() => onNavigate("dashboard")}
                   >

@@ -1,85 +1,81 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Heart, 
-  MessageSquare, 
-  Edit, 
-  Trash2, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Filter,
+  Eye,
+  Heart,
+  MessageSquare,
+  Edit,
+  Trash2,
   Plus,
   Globe,
   Lock,
-  Clock
+  Clock,
 } from "lucide-react";
 
-// Mock data
-const mockQuestions = [
-  {
-    id: "1",
-    title: "Binary Search Tree Validation",
-    tags: ["Binary Tree", "BST", "Recursion"],
-    isPublic: true,
-    createdAt: "2024-01-15T10:30:00Z",
-    views: 45,
-    likes: 12,
-    comments: 5,
-    difficulty: "Medium"
-  },
-  {
-    id: "2",
-    title: "Dynamic Programming - Longest Common Subsequence",
-    tags: ["Dynamic Programming", "Strings", "LCS"],
-    isPublic: true,
-    createdAt: "2024-01-14T14:20:00Z",
-    views: 67,
-    likes: 23,
-    comments: 8,
-    difficulty: "Hard"
-  },
-  {
-    id: "3",
-    title: "Graph Traversal - DFS Implementation",
-    tags: ["Graph", "DFS", "Traversal"],
-    isPublic: false,
-    createdAt: "2024-01-13T09:15:00Z",
-    views: 12,
-    likes: 3,
-    comments: 1,
-    difficulty: "Easy"
-  },
-  {
-    id: "4",
-    title: "Two Pointer Technique - Container With Most Water",
-    tags: ["Two Pointers", "Array", "Greedy"],
-    isPublic: true,
-    createdAt: "2024-01-12T16:45:00Z",
-    views: 89,
-    likes: 34,
-    comments: 12,
-    difficulty: "Medium"
-  }
-];
+interface Question {
+  _id: string;
+  title: string;
+  tags: string[];
+  isPublic: boolean;
+  createdAt: string;
+  views: number;
+  likes: number;
+  comments: number;
+  lang: string;
+  description: string;
+}
 
 interface MyQuestionsProps {
   onNavigate: (page: string) => void;
 }
 
 export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/questions/me", {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await res.json();
+        setQuestions(data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch questions:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -87,28 +83,28 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
     return date.toLocaleDateString();
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Easy": return "bg-success/10 text-success border-success/20";
-      case "Medium": return "bg-warning/10 text-warning border-warning/20";
-      case "Hard": return "bg-destructive/10 text-destructive border-destructive/20";
-      default: return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const filteredQuestions = mockQuestions
-    .filter(q => {
+  const filteredQuestions = questions
+    .filter((q) => {
       if (filterType === "public") return q.isPublic;
       if (filterType === "private") return !q.isPublic;
       return true;
     })
-    .filter(q => 
-      q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(
+      (q) =>
+        q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.tags.some((tag) =>
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     )
     .sort((a, b) => {
-      if (sortBy === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === "newest")
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      if (sortBy === "oldest")
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
       if (sortBy === "popular") return b.likes - a.likes;
       return 0;
     });
@@ -126,10 +122,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
               Manage and track your uploaded coding problems
             </p>
           </div>
-          <Button 
-            onClick={() => onNavigate("upload")}
-            className="btn-primary"
-          >
+          <Button onClick={() => onNavigate("upload")} className="btn-primary">
             <Plus className="mr-2 h-4 w-4" />
             Upload Question
           </Button>
@@ -148,7 +141,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
                   className="pl-10 input-focus"
                 />
               </div>
-              
+
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-full sm:w-40">
                   <Filter className="mr-2 h-4 w-4" />
@@ -175,18 +168,19 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
           </CardContent>
         </Card>
 
-        {/* Questions Grid */}
-        {filteredQuestions.length === 0 ? (
+        {/* Questions */}
+        {loading ? (
+          <p className="text-center text-muted-foreground">Loading...</p>
+        ) : filteredQuestions.length === 0 ? (
           <Card>
             <CardContent className="pt-12 pb-12 text-center">
               <div className="text-muted-foreground">
-                {searchTerm || filterType !== "all" 
+                {searchTerm || filterType !== "all"
                   ? "No questions match your filters. Try adjusting your search."
-                  : "You haven't uploaded any questions yet. Start sharing your coding problems!"
-                }
+                  : "You haven't uploaded any questions yet. Start sharing your coding problems!"}
               </div>
               {!searchTerm && filterType === "all" && (
-                <Button 
+                <Button
                   onClick={() => onNavigate("upload")}
                   className="mt-4 btn-primary"
                 >
@@ -199,7 +193,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredQuestions.map((question) => (
-              <Card key={question.id} className="card-hover group">
+              <Card key={question._id} className="card-hover group">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between mb-2">
                     <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
@@ -213,7 +207,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-1">
                     {question.tags.slice(0, 2).map((tag) => (
                       <Badge key={tag} variant="outline" className="text-xs">
@@ -230,12 +224,23 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
 
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-4">
-                    <Badge className={`text-xs ${getDifficultyColor(question.difficulty)}`}>
-                      {question.difficulty}
-                    </Badge>
-                    <Badge variant={question.isPublic ? "default" : "secondary"} className="text-xs">
+                    <Badge
+                      variant={question.isPublic ? "default" : "secondary"}
+                      className="text-xs"
+                    >
                       {question.isPublic ? "Public" : "Private"}
                     </Badge>
+                    <Badge className="text-xs">{question.lang}</Badge>
+                  </div>
+
+                  <div className="rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 p-3 mb-4 border border-muted shadow-sm">
+                    {question.description && (
+                      <p className="text-base font-medium text-foreground leading-relaxed line-clamp-2">
+                        {question.description.length > 100
+                          ? question.description.slice(0, 100) + "..."
+                          : question.description}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
@@ -267,7 +272,11 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
                       <Edit className="mr-1 h-3 w-3" />
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                    >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>

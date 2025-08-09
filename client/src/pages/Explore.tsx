@@ -1,105 +1,26 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Heart, 
-  MessageSquare, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Filter,
+  Eye,
+  Heart,
+  MessageSquare,
   Clock,
   TrendingUp,
   Code,
-  ThumbsUp
 } from "lucide-react";
-
-// Mock data
-const mockQuestions = [
-  {
-    id: "1",
-    title: "Binary Search Tree Validation",
-    tags: ["Binary Tree", "BST", "Recursion"],
-    author: {
-      username: "codeMaster",
-      avatar: "/lovable-uploads/d4807de6-0bc6-4782-b5f3-24161edbbefd.png",
-      institute: "MIT"
-    },
-    createdAt: "2024-01-15T10:30:00Z",
-    views: 145,
-    likes: 32,
-    comments: 15,
-    difficulty: "Medium",
-    isLiked: false
-  },
-  {
-    id: "2",
-    title: "Dynamic Programming - Longest Common Subsequence",
-    tags: ["Dynamic Programming", "Strings", "LCS"],
-    author: {
-      username: "algoPro",
-      avatar: "",
-      institute: "Stanford"
-    },
-    createdAt: "2024-01-14T14:20:00Z",
-    views: 267,
-    likes: 78,
-    comments: 23,
-    difficulty: "Hard",
-    isLiked: true
-  },
-  {
-    id: "3",
-    title: "Two Pointer Technique - Container With Most Water",
-    tags: ["Two Pointers", "Array", "Greedy"],
-    author: {
-      username: "dataStruct",
-      avatar: "",
-      institute: "CMU"
-    },
-    createdAt: "2024-01-13T09:15:00Z",
-    views: 189,
-    likes: 45,
-    comments: 18,
-    difficulty: "Medium",
-    isLiked: false
-  },
-  {
-    id: "4",
-    title: "Sliding Window Maximum",
-    tags: ["Sliding Window", "Deque", "Array"],
-    author: {
-      username: "windowMaster",
-      avatar: "",
-      institute: "Berkeley"
-    },
-    createdAt: "2024-01-12T16:45:00Z",
-    views: 123,
-    likes: 29,
-    comments: 8,
-    difficulty: "Hard",
-    isLiked: false
-  },
-  {
-    id: "5",
-    title: "Graph Shortest Path - Dijkstra Implementation",
-    tags: ["Graph", "Dijkstra", "Shortest Path"],
-    author: {
-      username: "graphGuru",
-      avatar: "",
-      institute: "Caltech"
-    },
-    createdAt: "2024-01-11T11:20:00Z",
-    views: 156,
-    likes: 41,
-    comments: 12,
-    difficulty: "Hard",
-    isLiked: true
-  }
-];
 
 interface ExploreProps {
   onNavigate: (page: string) => void;
@@ -109,13 +30,38 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [sortBy, setSortBy] = useState("trending");
-  const [questions, setQuestions] = useState(mockQuestions);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch questions from backend
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `http://localhost:8000/api/questions/public?search=${encodeURIComponent(
+            searchTerm
+          )}`
+        );
+        const data = await res.json();
+       
+        setQuestions(data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch questions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [searchTerm]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
@@ -125,31 +71,50 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy": return "bg-success/10 text-success border-success/20";
-      case "Medium": return "bg-warning/10 text-warning border-warning/20";
-      case "Hard": return "bg-destructive/10 text-destructive border-destructive/20";
-      default: return "bg-muted text-muted-foreground";
+      case "Easy":
+        return "bg-success/10 text-success border-success/20";
+      case "Medium":
+        return "bg-warning/10 text-warning border-warning/20";
+      case "Hard":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      default:
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const handleLike = (questionId: string) => {
-    setQuestions(prev => prev.map(q => 
-      q.id === questionId 
-        ? { ...q, isLiked: !q.isLiked, likes: q.isLiked ? q.likes - 1 : q.likes + 1 }
-        : q
-    ));
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q._id === questionId
+          ? {
+              ...q,
+              isLiked: !q.isLiked,
+              likes: q.isLiked ? q.likes - 1 : q.likes + 1,
+            }
+          : q
+      )
+    );
   };
 
-  const filteredQuestions = questions
-    .filter(q => {
-      if (difficultyFilter !== "all" && q.difficulty !== difficultyFilter) return false;
-      return q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             q.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-             q.author.username.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredQuestions = [...questions]
+    .filter((q) => {
+      if (difficultyFilter !== "all" && q.difficulty !== difficultyFilter)
+        return false;
+      return (
+        q.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.tags?.some((tag: string) =>
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        q.createdBy?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     })
     .sort((a, b) => {
-      if (sortBy === "trending") return (b.likes + b.views/10) - (a.likes + a.views/10);
-      if (sortBy === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === "trending")
+        return b.likes + b.views / 10 - (a.likes + a.views / 10);
+      if (sortBy === "newest")
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       if (sortBy === "popular") return b.likes - a.likes;
       if (sortBy === "views") return b.views - a.views;
       return 0;
@@ -181,8 +146,11 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                   className="pl-10 input-focus"
                 />
               </div>
-              
-              <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+
+              <Select
+                value={difficultyFilter}
+                onValueChange={setDifficultyFilter}
+              >
                 <SelectTrigger className="w-full sm:w-40">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Difficulty" />
@@ -216,25 +184,35 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
         </Card>
 
         {/* Questions Grid */}
-        {filteredQuestions.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-10 text-muted-foreground">
+            Loading...
+          </div>
+        ) : filteredQuestions.length === 0 ? (
           <Card>
             <CardContent className="pt-12 pb-12 text-center">
               <div className="text-muted-foreground">
-                No questions match your search criteria. Try adjusting your filters.
+                No questions match your search criteria. Try adjusting your
+                filters.
               </div>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
             {filteredQuestions.map((question) => (
-              <Card key={question.id} className="card-hover cursor-pointer">
+              <Card key={question._id} className="card-hover cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     {/* Author Avatar */}
                     <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarImage src={question.author.avatar} alt={question.author.username} />
+                      <AvatarImage
+                        src={question.createdBy?.avatar}
+                        alt={question.createdBy?.username}
+                      />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {question.author.username.slice(0, 2).toUpperCase()}
+                        {question.createdBy?.username
+                          ?.slice(0, 2)
+                          .toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
 
@@ -242,9 +220,9 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                     <div className="flex-1 min-w-0">
                       {/* Author Info */}
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-sm">{question.author.username}</span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">{question.author.institute}</span>
+                        <span className="font-medium text-sm">
+                          {question.createdBy?.username}
+                        </span>
                         <span className="text-xs text-muted-foreground">•</span>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
@@ -252,22 +230,37 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                         </div>
                       </div>
 
-                      {/* Question Title */}
-                      <h3 className="text-lg font-semibold mb-3 hover:text-primary transition-colors">
-                        {question.title}
-                      </h3>
-
-                      {/* Tags and Difficulty */}
-                      <div className="flex flex-wrap items-center gap-2 mb-4">
-                        {question.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
+                      {/* Question Title + Tags */}
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold hover:text-primary transition-colors">
+                          {question.title}
+                        </h3>
+                        {question.tags?.map((tag: string) => (
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}
-                        <Badge className={`text-xs ${getDifficultyColor(question.difficulty)}`}>
-                          {question.difficulty}
-                        </Badge>
+                        {question.difficulty && (
+                          <Badge
+                            className={`text-xs ${getDifficultyColor(
+                              question.difficulty
+                            )}`}
+                          >
+                            {question.difficulty}
+                          </Badge>
+                        )}
                       </div>
+
+                      {/* Question Description */}
+                      {question.description && (
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                          {question.description}
+                        </p>
+                      )}
 
                       {/* Engagement Stats */}
                       <div className="flex items-center justify-between">
@@ -278,7 +271,7 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                           </div>
                           <div className="flex items-center gap-1">
                             <MessageSquare className="h-4 w-4" />
-                            {question.comments}
+                            {question.comments?.length || 0}
                           </div>
                         </div>
 
@@ -289,11 +282,17 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleLike(question.id);
+                              handleLike(question._id);
                             }}
-                            className={`gap-1 ${question.isLiked ? 'text-primary' : ''}`}
+                            className={`gap-1 ${
+                              question.isLiked ? "text-primary" : ""
+                            }`}
                           >
-                            <Heart className={`h-4 w-4 ${question.isLiked ? 'fill-current' : ''}`} />
+                            <Heart
+                              className={`h-4 w-4 ${
+                                question.isLiked ? "fill-current" : ""
+                              }`}
+                            />
                             {question.likes}
                           </Button>
                           <Button variant="outline" size="sm" className="gap-1">

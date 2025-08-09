@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Eye, Heart, MessageSquare, ArrowRight } from "lucide-react";
 
 interface Question {
+  _id:string;
   id: string;
   title: string;
   tags: string[];
@@ -53,7 +54,7 @@ export const RecentActivity = ({ questions, onViewAll, onViewQuestion }: RecentA
           <div className="space-y-4">
             {questions.slice(0, 3).map((question) => (
               <div
-                key={question.id}
+                key={question._id}
                 className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
                 onClick={() => onViewQuestion(question.id)}
               >
