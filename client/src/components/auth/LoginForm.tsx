@@ -4,10 +4,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Code } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -16,15 +30,11 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-interface LoginFormProps {
-  onLogin: (username: string) => void;
-  onSwitchToSignup: () => void;
-}
-
-export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
+export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  
+  const navigate = useNavigate();
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,36 +44,34 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-  try {
-    const response = await fetch("http://localhost:8000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) {
-      throw new Error("Login failed");
+      if (!response.ok) throw new Error("Login failed");
+
+      const responseData = await response.json();
+      localStorage.setItem("token", responseData.token);
+      localStorage.setItem("user", JSON.stringify(responseData.user));
+
+      toast({
+        title: "Welcome back!",
+        description: "You have been logged in successfully.",
+      });
+
+      navigate("/dashboard"); // redirect to dashboard
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive",
+      });
     }
+  };
 
-    const responseData = await response.json();
-    localStorage.setItem("token", responseData.token);
-
-    toast({
-      title: "Welcome back!",
-      description: "You have been logged in successfully.",
-    });
-
-    onLogin(data.username);
-  } catch (error) {
-    toast({
-      title: "Login failed",
-      description: "Please check your credentials and try again.",
-      variant: "destructive",
-    });
-  }
-};
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
       <div className="w-full max-w-md animate-fade-in">
@@ -75,7 +83,9 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
             </div>
           </div>
           <h1 className="text-3xl font-bold gradient-text">ZCODER</h1>
-          <p className="text-muted-foreground mt-2">Your coding community awaits</p>
+          <p className="text-muted-foreground mt-2">
+            Your coding community awaits
+          </p>
         </div>
 
         <Card className="border-0 shadow-lg bg-card/80 backdrop-blur-sm">
@@ -87,7 +97,10 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="username"
@@ -95,17 +108,17 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Enter your username" 
+                        <Input
+                          placeholder="Enter your username"
                           className="input-focus"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="password"
@@ -140,8 +153,8 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full btn-primary"
                   disabled={form.formState.isSubmitting}
                 >
@@ -153,13 +166,12 @@ export const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
             <div className="mt-6 text-center space-y-2">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Button 
-                  variant="link" 
+                <Link
+                  to="/signup"
                   className="p-0 h-auto font-medium text-primary"
-                  onClick={onSwitchToSignup}
                 >
                   Sign up here
-                </Button>
+                </Link>
               </p>
             </div>
           </CardContent>

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Code, ArrowLeft } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -21,15 +22,14 @@ const signupSchema = z.object({
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
-interface SignupFormProps {
-  onSignupSuccess: () => void;
-  onSwitchToLogin: () => void;
-}
 
-export const SignupForm = ({ onSignupSuccess, onSwitchToLogin }: SignupFormProps) => {
+
+export const SignupForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
   
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -60,7 +60,7 @@ if (!response.ok) {
         description: "Your account has been created successfully. Please sign in.",
       });
       
-      onSignupSuccess();
+     navigate("/login");;
     } catch (error) {
       toast({
         title: "Signup failed",
@@ -90,7 +90,7 @@ if (!response.ok) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onSwitchToLogin}
+                onClick={() => navigate("/login")}
                 className="p-1 h-auto"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -222,13 +222,9 @@ if (!response.ok) {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto font-medium text-primary"
-                  onClick={onSwitchToLogin}
-                >
-                  Sign in
-                </Button>
+               <Link to="/login" className="p-0 h-auto font-medium text-primary">
+                Sign in
+              </Link>
               </p>
             </div>
           </CardContent>

@@ -3,6 +3,7 @@ import { UserProfile } from "@/components/dashboard/UserProfile";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 // 1. DEFINE THE USER INTERFACE (as shown above)
 interface User {
@@ -25,21 +26,16 @@ interface User {
   };
   stats: {
     questionsUploaded: 42;
-
     solutionsShared: 78;
     likes: 234;
-
     followers: 89;
   };
 }
 
 
 
-interface DashboardProps {
-  onNavigate: (page: string) => void;
-}
-
-export const Dashboard = ({ onNavigate }: DashboardProps) => {
+export const Dashboard = () => {
+  const navigate = useNavigate();
   // 2. ADD STATE FOR USER, LOADING, AND ERRORS
   const [user, setUser] = useState<User | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -113,7 +109,7 @@ useEffect(() => {
         <p className="text-muted-foreground">
           {error || "Could not load user data."}
         </p>
-        <Button onClick={() => onNavigate("login")} className="mt-6">
+  <Button onClick={() => navigate("/login")} className="mt-6">
           Go to Login
         </Button>
       </div>
@@ -140,7 +136,7 @@ useEffect(() => {
             <Button
               className="btn-primary"
               size="lg"
-              onClick={() => onNavigate("settings")}
+              onClick={() => navigate("/settings")}
             >
               Complete Your Profile
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -173,11 +169,11 @@ useEffect(() => {
   };
 
   const handleViewAllQuestions = () => {
-    onNavigate("my-questions");
+    navigate("/my-questions");
   };
 
   const handleViewQuestion = (id: string) => {
-    console.log("Viewing question:", id);
+    navigate(`/questionpreview/${id}`);
   };
 
   return (

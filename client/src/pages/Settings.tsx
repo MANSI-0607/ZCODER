@@ -37,11 +37,10 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-interface SettingsProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export const Settings = ({ onNavigate }: SettingsProps) => {
+export const Settings = () => {
+  const navigate = useNavigate();
   const [newSkill, setNewSkill] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,7 +78,7 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
             description: "You are not logged in. Please log in to continue.",
             variant: "destructive",
           });
-          onNavigate("login");
+          navigate("/login");
           return;
         }
 
@@ -182,7 +181,7 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
         description: "Your profile has been updated successfully.",
       });
 
-      onNavigate("dashboard");
+  navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Update failed",
@@ -473,7 +472,7 @@ export const Settings = ({ onNavigate }: SettingsProps) => {
                     <Button 
                       type="button" 
                       variant="outline"
-                      onClick={() => onNavigate("dashboard")}
+                      onClick={() => navigate("/dashboard")}
                     >
                       Cancel
                     </Button>

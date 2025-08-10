@@ -58,11 +58,10 @@ int main() {
 }`,
 };
 
-interface CodeLiveProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export const CodeLive = ({ onNavigate }: CodeLiveProps) => {
+export const CodeLive = () => {
+  const navigate = useNavigate();
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState(DEFAULT_CODE.cpp);
   const [input, setInput] = useState("");
@@ -301,7 +300,7 @@ const handleRunCode = async () => {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => onNavigate("upload")}
+                    onClick={() => navigate("/upload")}
                   >
                     Save as Question
                   </Button>

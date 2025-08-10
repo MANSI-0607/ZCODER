@@ -48,11 +48,10 @@ const LANGUAGES = [
 
 type UploadFormData = z.infer<typeof uploadSchema>;
 
-interface UploadQuestionProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export const UploadQuestion = ({ onNavigate }: UploadQuestionProps) => {
+export const UploadQuestion = () => {
+  const navigate = useNavigate();
   const [newTag, setNewTag] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const { toast } = useToast();
@@ -124,7 +123,7 @@ const onSubmit = async (data: UploadFormData) => {
 
     form.reset();
     setTags([]);
-    onNavigate("my-questions");
+  navigate("/my-questions");
 
   } catch (error: any) {
     toast({
@@ -392,7 +391,7 @@ const onSubmit = async (data: UploadFormData) => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => onNavigate("dashboard")}
+                    onClick={() => navigate("/dashboard")}
                   >
                     Cancel
                   </Button>

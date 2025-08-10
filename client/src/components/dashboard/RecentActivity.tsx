@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Eye, Heart, MessageSquare, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Question {
   _id:string;
@@ -22,6 +23,8 @@ interface RecentActivityProps {
 }
 
 export const RecentActivity = ({ questions, onViewAll, onViewQuestion }: RecentActivityProps) => {
+  const navigate = useNavigate();
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -56,7 +59,10 @@ export const RecentActivity = ({ questions, onViewAll, onViewQuestion }: RecentA
               <div
                 key={question._id}
                 className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
-                onClick={() => onViewQuestion(question.id)}
+                onClick={() => {
+                  onViewQuestion(question.id);
+                  navigate(`/questions/${question.id}`);
+                }}
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium group-hover:text-primary transition-colors line-clamp-1">

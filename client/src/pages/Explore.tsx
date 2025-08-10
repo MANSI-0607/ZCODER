@@ -22,11 +22,10 @@ import {
   Code,
 } from "lucide-react";
 
-interface ExploreProps {
-  onNavigate: (page: string) => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export const Explore = ({ onNavigate }: ExploreProps) => {
+export const Explore = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [sortBy, setSortBy] = useState("trending");
@@ -295,7 +294,12 @@ export const Explore = ({ onNavigate }: ExploreProps) => {
                             />
                             {question.likes}
                           </Button>
-                          <Button variant="outline" size="sm" className="gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => navigate(`/questionpreview/${question._id}`)}
+                          >
                             <Code className="h-4 w-4" />
                             View Solution
                           </Button>

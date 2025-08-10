@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
 import {
   Select,
   SelectContent,
@@ -37,16 +40,14 @@ interface Question {
   description: string;
 }
 
-interface MyQuestionsProps {
-  onNavigate: (page: string) => void;
-}
-
-export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
+export const MyQuestions = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -109,6 +110,43 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
       return 0;
     });
 
+  const handleEdit = (id: string) => {
+    navigate(`/questionpreview/${id}`);
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this question?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/questions/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to delete question");
+
+      setQuestions((prev) => prev.filter((q) => q._id !== id));
+
+      toast({
+        title: "Deleted",
+        description: "The question was successfully deleted.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the question.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,7 +160,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
               Manage and track your uploaded coding problems
             </p>
           </div>
-          <Button onClick={() => onNavigate("upload")} className="btn-primary">
+          <Button onClick={() => navigate("/upload")} className="btn-primary">
             <Plus className="mr-2 h-4 w-4" />
             Upload Question
           </Button>
@@ -181,7 +219,7 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
               </div>
               {!searchTerm && filterType === "all" && (
                 <Button
-                  onClick={() => onNavigate("upload")}
+                  onClick={() => navigate("/upload")}
                   className="mt-4 btn-primary"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -268,14 +306,21 @@ export const MyQuestions = ({ onNavigate }: MyQuestionsProps) => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEdit(question._id)}
+                    >
                       <Edit className="mr-1 h-3 w-3" />
-                      Edit
+                      View
                     </Button>
+
                     <Button
                       variant="outline"
                       size="sm"
                       className="text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(question._id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
