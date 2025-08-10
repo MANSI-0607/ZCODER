@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Coding Q&A Platform Design System */
+
+@layer base {
+  :root {
+    /* Core Background & Text */
+    --background: 220 15% 97%;
+    --foreground: 224 25% 12%;
+
+    /* Card System */
+    --card: 0 0% 100%;
+    --card-foreground: 224 25% 12%;
+
+    /* Interactive Elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 25% 12%;
+
+    /* Primary Brand Colors - Tech Blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 55%;
+    
+    /* Secondary - Code Green */
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Accent - Success Teal */
+    --accent: 173 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Muted Elements */
+    --muted: 220 13% 91%;
+    --muted-foreground: 215 20% 40%;
+
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 87%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
+
+    /* Code Editor Theme */
+    --code-bg: 225 25% 8%;
+    --code-text: 220 14% 95%;
+    --code-comment: 215 15% 60%;
+    --code-keyword: 217 91% 75%;
+    --code-string: 142 76% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(173 80% 40%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 13% 97%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.1), hsl(173 80% 40% / 0.1));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px hsl(217 91% 60% / 0.1);
+    --shadow-md: 0 4px 6px hsl(217 91% 60% / 0.1), 0 2px 4px hsl(217 91% 60% / 0.06);
+    --shadow-lg: 0 10px 15px hsl(217 91% 60% / 0.1), 0 4px 6px hsl(217 91% 60% / 0.05);
+    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.3);
+
+    /* Animations */
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark Mode - Code Editor Inspired */
+    --background: 225 25% 8%;
+    --foreground: 220 14% 95%;
+
+    --card: 225 20% 10%;
+    --card-foreground: 220 14% 95%;
+
+    --popover: 225 20% 10%;
+    --popover-foreground: 220 14% 95%;
+
+    --primary: 217 91% 65%;
+    --primary-foreground: 225 25% 8%;
+    --primary-hover: 217 91% 60%;
+
+    --secondary: 142 76% 45%;
+    --secondary-foreground: 225 25% 8%;
+
+    --accent: 173 80% 50%;
+    --accent-foreground: 225 25% 8%;
+
+    --muted: 225 15% 15%;
+    --muted-foreground: 215 15% 60%;
+
+    --success: 142 76% 45%;
+    --success-foreground: 225 25% 8%;
+    --warning: 45 93% 55%;
+    --warning-foreground: 225 25% 8%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 225 25% 8%;
+
+    --border: 225 15% 20%;
+    --input: 225 15% 15%;
+    --ring: 217 91% 65%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 65%), hsl(173 80% 50%));
+    --gradient-card: linear-gradient(145deg, hsl(225 20% 10%), hsl(225 15% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 65% / 0.2), hsl(173 80% 50% / 0.2));
+
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.2), 0 2px 4px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.3), 0 4px 6px hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 20px hsl(217 91% 65% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-md hover:shadow-lg transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-muted/50 transition-all duration-200;
+  }
+
+  .input-focus {
+    @apply focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200;
+  }
+
+  .code-block {
+    @apply bg-code-bg text-code-text p-4 rounded-lg font-mono text-sm overflow-x-auto;
+  }
+
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-public {
+    @apply bg-success/10 text-success border border-success/20;
+  }
+
+  .status-private {
+    @apply bg-warning/10 text-warning border border-warning/20;
+  }
+}
