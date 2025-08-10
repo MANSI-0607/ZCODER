@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 8000;
 
     app.use(helmet());
     app.use(cors({
-      origin: "http://localhost:8080", // frontend origin
+      origin: "http://localhost:8080", 
       credentials: true
     }));
     app.use(express.json());
@@ -24,7 +24,9 @@ const PORT = process.env.PORT || 8000;
     app.use("/api/auth", require("./routes/authRoutes"));
     app.use("/api/users", require("./routes/userRoutes")); 
     // question routes
-    app.use("/api/questions", require("./routes/questionRoutes"));
+    app.use("/api/questions", require("./routes/questionRoutes"));4
+    app.use("/api/code", require("./routes/codeRoutes"));
+
 
 
     // Start server

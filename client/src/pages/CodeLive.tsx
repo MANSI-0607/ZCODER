@@ -80,61 +80,54 @@ export const CodeLive = ({ onNavigate }: CodeLiveProps) => {
     setExecutionTime(null);
   };
 
-  const handleRunCode = async () => {
-    if (!code.trim()) {
-      toast({
-        title: "No code to run",
-        description: "Please write some code before running.",
-        variant: "destructive",
-      });
-      return;
-    }
+const handleRunCode = async () => {
+  if (!code.trim()) {
+    toast({
+      title: "No code to run",
+      description: "Please write some code before running.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    setIsRunning(true);
-    setStatus("idle");
-    setExecutionTime(null);
-    
-    const startTime = Date.now();
-    
-    try {
-      // Simulate code execution
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
-      const endTime = Date.now();
-      const execTime = endTime - startTime;
-      
-      // Simulate different outcomes
-      const outcomes = [
-        { success: true, output: "Hello, World!\nExecution completed successfully." },
-        { success: true, output: input ? `Input received: ${input}\nProcessed successfully.` : "No input provided.\nProgram executed successfully." },
-        { success: false, output: "Runtime Error: Division by zero\nLine 10: x = a / b" },
-        { success: false, output: "Compilation Error: 'cout' was not declared in this scope\nLine 5: cout << \"Hello\";" },
-      ];
-      
-      const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-      
-      setOutput(outcome.output);
-      setStatus(outcome.success ? "success" : "error");
-      setExecutionTime(execTime);
-      
-      toast({
-        title: outcome.success ? "Code executed successfully" : "Execution failed",
-        description: outcome.success ? `Completed in ${execTime}ms` : "Check the output for error details",
-        variant: outcome.success ? "default" : "destructive",
-      });
-      
-    } catch (error) {
-      setOutput("Unexpected error occurred during execution.");
-      setStatus("error");
-      toast({
-        title: "Execution error",
-        description: "Something went wrong while running your code.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
+  setIsRunning(true);
+  setStatus("idle");
+  setExecutionTime(null);
+
+  try {
+    const res = await fetch("http://localhost:8000/api/code/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language, code, input })
+    });
+
+    const data = await res.json();
+
+    setOutput(data.output);
+    setStatus(data.success ? "success" : "error");
+    setExecutionTime(data.executionTime);
+
+    toast({
+      title: data.success ? "Code executed successfully" : "Execution failed",
+      description: data.success
+        ? `Completed in ${data.executionTime}ms`
+        : "Check the output for error details",
+      variant: data.success ? "default" : "destructive",
+    });
+
+  } catch (error) {
+    setOutput("Unexpected error occurred during execution.");
+    setStatus("error");
+    toast({
+      title: "Execution error",
+      description: "Something went wrong while running your code.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsRunning(false);
+  }
+};
+
 
   const getStatusIcon = () => {
     switch (status) {
