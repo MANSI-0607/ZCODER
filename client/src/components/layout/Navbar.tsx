@@ -20,15 +20,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface NavbarProps {
-  user: {
-    avatar: string;
-    username: string;
-  };
-  onLogout: () => void;
-}
 
-export const Navbar = ({ user, onLogout }: NavbarProps) => {
+export const handleLogout = () => {
+  try {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token"); 
+
+    sessionStorage.clear();
+  } catch (err) {
+    console.error("Error during logout:", err);
+  }
+};
+
+export const Navbar = () => {
   // Get user from localStorage
   const localUser = (() => {
     try {
@@ -42,13 +46,21 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const onLogout = () => {
+    handleLogout();
+    navigate("/login");
+  };
   // Define navigation items with their routes
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Code, path: "/dashboard" },
     { id: "explore", label: "Explore", icon: Compass, path: "/explore" },
     { id: "upload", label: "Upload Question", icon: Upload, path: "/upload" },
-    { id: "my-questions", label: "My Questions", icon: FileText, path: "/my-questions" },
+    {
+      id: "my-questions",
+      label: "My Questions",
+      icon: FileText,
+      path: "/my-questions",
+    },
     { id: "code-live", label: "Code Live", icon: Code, path: "/code-live" },
   ];
 
@@ -109,7 +121,10 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={localUser.avatar} alt={localUser.username} />
+                    <AvatarImage
+                      src={localUser.avatar}
+                      alt={localUser.username}
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {localUser.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -119,7 +134,10 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center gap-2 p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={localUser.avatar} alt={localUser.username} />
+                    <AvatarImage
+                      src={localUser.avatar}
+                      alt={localUser.username}
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                       {localUser.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -138,8 +156,8 @@ export const Navbar = ({ user, onLogout }: NavbarProps) => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
-                    onLogout();
-                    navigate("/login");
+                    onLogout(); // clears localStorage
+                    navigate("/login"); // navigates to login page
                   }}
                   className="text-destructive"
                 >
