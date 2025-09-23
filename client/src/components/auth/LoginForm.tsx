@@ -42,10 +42,10 @@ export const LoginForm = () => {
       password: "",
     },
   });
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

@@ -5,7 +5,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
@@ -15,7 +15,7 @@ const Index = () => {
         return;
       }
       try {
-        const res = await fetch("http://localhost:8000/api/users/profile", {
+        const res = await fetch(`${API_BASE_URL}/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error();

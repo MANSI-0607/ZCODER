@@ -100,8 +100,9 @@ const onSubmit = async (data: UploadFormData) => {
       notes: data.notes || "",
       isPublic: data.isPublic ?? true
     };
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-    const resp = await fetch("http://localhost:8000/api/questions", {
+    const resp = await fetch(`${API_BASE_URL}/questions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

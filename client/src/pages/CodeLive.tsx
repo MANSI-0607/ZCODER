@@ -92,9 +92,9 @@ const handleRunCode = async () => {
   setIsRunning(true);
   setStatus("idle");
   setExecutionTime(null);
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   try {
-    const res = await fetch("http://localhost:8000/api/code/run", {
+    const res = await fetch(`${API_BASE_URL}/code/run`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ language, code, input })

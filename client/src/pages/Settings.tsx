@@ -81,8 +81,8 @@ export const Settings = () => {
           navigate("/login");
           return;
         }
-
-        const response = await fetch("http://localhost:8000/api/users/profile", {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await fetch(`${API_BASE_URL}/users/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -161,8 +161,8 @@ export const Settings = () => {
         skills: data.skills,
         platforms: data.platforms,
       };
-
-      const response = await fetch("http://localhost:8000/api/users/profile", {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

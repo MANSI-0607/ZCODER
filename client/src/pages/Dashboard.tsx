@@ -49,14 +49,15 @@ useEffect(() => {
       setIsLoading(false);
       return;
     }
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     try {
       // Fetch profile & questions in parallel
       const [userRes, questionsRes] = await Promise.all([
-        fetch("http://localhost:8000/api/users/profile", {
+        fetch(`${API_BASE_URL}/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:8000/api/questions/me", {
+        fetch(`${API_BASE_URL}/questions/me`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

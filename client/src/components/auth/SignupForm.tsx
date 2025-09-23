@@ -38,12 +38,13 @@ export const SignupForm = () => {
       username: "",
       password: "",
       confirmPassword: "",
-    },
+    },      
   });
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const onSubmit = async (data: SignupFormData) => {
     try {
-     const response = await fetch("http://localhost:8000/api/auth/signup", {
+     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

@@ -31,14 +31,14 @@ export const Explore = () => {
   const [sortBy, setSortBy] = useState("trending");
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   // Fetch questions from backend
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
         const res = await fetch(
-          `http://localhost:8000/api/questions/public?search=${encodeURIComponent(
+          `${API_BASE_URL}/questions/public?search=${encodeURIComponent(
             searchTerm
           )}`
         );

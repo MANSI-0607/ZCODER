@@ -48,11 +48,11 @@ export const MyQuestions = () => {
   const [sortBy, setSortBy] = useState("newest");
   const navigate = useNavigate();
   const { toast } = useToast();
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/questions/me", {
+        const res = await fetch(`${API_BASE_URL}/questions/me`, {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -109,7 +109,7 @@ export const MyQuestions = () => {
       if (sortBy === "popular") return b.likes - a.likes;
       return 0;
     });
-
+   
   const handleEdit = (id: string) => {
     navigate(`/questionpreview/${id}`);
   };
@@ -119,9 +119,10 @@ export const MyQuestions = () => {
       "Are you sure you want to delete this question?"
     );
     if (!confirmed) return;
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/questions/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/questions/${id}`, {
         method: "DELETE",
         credentials: "include",
         headers: {

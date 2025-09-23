@@ -58,12 +58,12 @@ export default function QuestionPreviewRedesigned() {
   const [editedQuestion, setEditedQuestion] = useState<Question | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   useEffect(() => {
     const fetchQuestion = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`http://localhost:8000/api/questions/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/questions/${id}`, {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export default function QuestionPreviewRedesigned() {
     if (!editedQuestion) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/questions/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/questions/${id}`, {
         method: "PUT",
         credentials: "include",
         headers: {
